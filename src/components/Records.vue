@@ -14,7 +14,7 @@
     <transition-group name="record-list" tag="div" class="records-list">
       <div
         v-for="(r, index) of records"
-        :key="index"
+        :key="r.elapsedTime + '-' + index"
         class="record-row"
       >
         <span class="record-rank">
@@ -40,24 +40,32 @@ export default {
   },
   methods: {
     getRecords() {
-      this.records = JSON.parse(localStorage.getItem("records")) || [];
+      try {
+        const data = localStorage.getItem("puzzle_records");
+        this.records = data ? JSON.parse(data) : [];
+      } catch (e) {
+        console.error("Failed to parse local records storage:", e);
+        this.records = [];
+      }
     },
     clearRecords() {
-      localStorage.removeItem("records");
-      this.records = [];
-    },
-  },
+      if (confirm("Are you sure you want to delete all historical puzzle times?")) {
+        localStorage.removeItem("puzzle_records");
+        this.records = [];
+      }
+    }
+  }
 };
 </script>
 
 <style scoped>
 .records-wrapper {
-  margin: 15px auto 5px;
-  max-width: 380px;
-  background: rgba(255,255,255,0.4);
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.4);
   border-radius: 16px;
-  padding: 12px 20px;
-  border: 1px solid rgba(255,255,255,0.5);
+  padding: 15px;
+  max-width: 320px;
+  margin: 0 auto 25px;
   box-shadow: 0 4px 15px rgba(0,0,0,0.03);
 }
 
@@ -80,8 +88,12 @@ button {
   padding: 5px 14px !important;
   font-size: 0.8rem !important;
   border: none !important;
+  cursor: pointer;
+  color: white;
+  transition: background 0.2s ease;
 }
 button.update-button { background: rgba(45, 106, 79, 0.8); }
+button.update-button:hover { background: rgba(45, 106, 79, 1); }
 button.clear-button { background: rgba(160, 50, 50, 0.8); }
 button.clear-button:hover { background: rgba(190, 40, 40, 0.95) !important; }
 
@@ -96,38 +108,40 @@ button.clear-button:hover { background: rgba(190, 40, 40, 0.95) !important; }
   display: flex;
   flex-direction: column;
   gap: 5px;
-  max-height: 140px;
+  max-height: 150px;
   overflow-y: auto;
+  padding-right: 4px;
 }
+
+/* Custom minimal scrollbar styling */
+.records-list::-webkit-scrollbar { width: 4px; }
+.records-list::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 4px; }
 
 .record-row {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 10px;
+  background: rgba(255, 255, 255, 0.7);
   padding: 6px 12px;
-  background: rgba(255,255,255,0.5);
   border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.5);
+  font-size: 0.85rem;
+  border: 1px solid rgba(0,0,0,0.02);
 }
 
-.record-rank {
-  font-size: 1rem;
-  min-width: 24px;
-}
+.record-rank { font-weight: bold; width: 30px; text-align: left; }
+.record-time { font-family: monospace; color: #2d6a4f; font-weight: 600; flex-grow: 1; text-align: left; }
+.record-moves { font-size: 0.75rem; color: #7a9a84; }
 
-.record-time {
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: #1e3322;
+/* Transition Animations for List Additions */
+.record-list-enter-active, .record-list-leave-active {
+  transition: all 0.4s ease;
 }
-
-.record-moves {
-  font-size: 0.78rem;
-  color: #5a7a64;
+.record-list-enter {
+  opacity: 0;
+  transform: translateY(-10px);
 }
-
-.record-list-enter-active { transition: all 0.3s ease; }
-.record-list-leave-active  { transition: all 0.2s ease; }
-.record-list-enter         { opacity: 0; transform: translateX(-10px); }
-.record-list-leave-to      { opacity: 0; transform: translateX(10px); }
+.record-list-leave-to {
+  opacity: 0;
+  transform: scale(0.9);
+}
 </style>
