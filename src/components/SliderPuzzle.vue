@@ -122,27 +122,27 @@ let winAudio   = null;
 function initAudio() {
   try {
     if (!bgAudio) {
-      bgAudio   = new Audio(require("../assets/sounds/background-music.mp3.mp3"));
-      swapAudio = new Audio(require("../assets/sounds/tile-swap.mp3.wav"));
-      winAudio  = new Audio(require("../assets/sounds/win-sound.mp3.wav"));
+      // Clean, verified path targets matching your assets folder structure exactly
+      bgAudio   = new Audio(require("../assets/sounds/background-music.mp3"));
+      swapAudio = new Audio(require("../assets/sounds/tile-swap.wav"));
+      winAudio  = new Audio(require("../assets/sounds/win-sound.wav"));
       
       bgAudio.loop     = true;
-      bgAudio.volume   = 0.25; // Default ambient menu volume
+      bgAudio.volume   = 0.25; 
       swapAudio.volume = 0.85;
       winAudio.volume  = 0.95;
     }
   } catch (e) {
-    console.error("Audio pipeline initialization error:", e);
+    console.warn("Audio Context setup deferred or asset missing:", e);
   }
 }
 
 function playBgMusic(isGameplay = false) {
   initAudio();
   if (bgAudio) {
-    // Dynamic volume adjustment based on game status
     bgAudio.volume = isGameplay ? 0.06 : 0.25;
     if (bgAudio.paused) {
-      bgAudio.play().catch(() => {});
+      bgAudio.play().catch((err) => console.log("Audio play blocked by browser policy until interaction:", err));
     }
   }
 }
@@ -220,11 +220,14 @@ export default {
   },
   created() {
     this.shufflePuzzle();
-    // Initialize audio system directly when component mounts open
-    initAudio();
+    // Attempt initialization safely during hook lifecycle
+    try {
+      initAudio();
+    } catch(e) {
+      console.warn("Audio initialization postponed:", e);
+    }
   },
   mounted() {
-    // Master listener to bypass browser block rules instantly on the very first touch/click
     const unlockAudio = () => {
       if (this.bgMusicEnabled && !this.hasWon && !this.isPaused) {
         playBgMusic(this.isPlaying);
@@ -335,7 +338,6 @@ export default {
         this.currentDateTime = new Date();
       }, 1000);
       
-      // Drops volume level lower for game play mode
       if (this.bgMusicEnabled) playBgMusic(true);
     },
     stop() {
@@ -346,7 +348,6 @@ export default {
       this.pausedDiff = 0;
       this.resetTime();
       
-      // Returns background audio back to higher menu style volume mix
       if (this.bgMusicEnabled) playBgMusic(false);
     },
     pause() {
@@ -389,7 +390,7 @@ export default {
     },
     confettiStyle(n) {
       return {
-        left:              `${rand(0, 100)}%`,
+        left:               `${rand(0, 100)}%`,
         top:               `${rand(-15, 20)}%`,
         width:             `${rand(5, 15)}px`,
         height:            `${rand(5, 25)}px`,
