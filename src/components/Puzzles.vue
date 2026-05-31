@@ -22,8 +22,6 @@ export default {
   name: "Puzzle-component",
   data() {
     return {
-      // reactive properties
-      // array object containing puzzlie id, image & title
       puzzles: [
         {
           id: "cut-easy",
@@ -44,11 +42,7 @@ export default {
     };
   },
   methods: {
-    // on click will set the choice of puzzle by user
-    // puzzzle-chage event will be emited
     selectPuzzle(puzzle) {
-      // puzzle-changed - name of event
-      // puzzle.id - payload
       console.log(puzzle)
       this.$emit("puzzle-changed", puzzle.id);
     },
